@@ -1,0 +1,37 @@
+services:
+  dgem-web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: dgem-web-v001
+    restart: unless-stopped
+    environment:
+      - TZ=Australia/Adelaide
+      - DGEM_ENV=development
+      - DGEM_PROJECT_ROOT=/data
+    volumes:
+      - ./data:/data
+      - ./registries:/registries
+      - ./runner:/runner
+      - ./docs:/docs
+      - ./change_log:/change_log
+    networks:
+      - dgem-net
+
+  dgem-caddy:
+    image: caddy:2
+    container_name: dgem-caddy-v001
+    restart: unless-stopped
+    ports:
+      - "8090:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./data/logs:/var/log/caddy
+    depends_on:
+      - dgem-web
+    networks:
+      - dgem-net
+
+networks:
+  dgem-net:
+    name: dgem-net-v001

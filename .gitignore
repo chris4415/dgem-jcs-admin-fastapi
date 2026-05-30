@@ -1,0 +1,10 @@
+.env
+*.db
+*.duckdb
+*.log
+__pycache__/
+.pytest_cache/
+data/duckdb/
+data/logs/
+data/uploads/
+runner/logs/

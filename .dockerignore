@@ -1,0 +1,11 @@
+.env
+.git
+__pycache__/
+.pytest_cache/
+*.log
+*.duckdb
+*.db
+data/duckdb/
+data/logs/
+data/uploads/
+runner/logs/
