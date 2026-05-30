@@ -6,7 +6,7 @@ ENV TZ=Australia/Adelaide
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir fastapi uvicorn[standard] duckdb pydantic python-multipart jinja2
+RUN pip install --no-cache-dir fastapi uvicorn[standard] duckdb pydantic python-multipart jinja2 itsdangerous
 
 COPY app /app/app
 

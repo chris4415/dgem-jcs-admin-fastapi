@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <title>DG-E&M Login</title>
+</head>
+<body>
+  <h1>DG-E&M JCS-admin Login</h1>
+  <p>FastAPI build {{ version }}</p>
+
+  {% if error %}
+    <p style="color:red;">{{ error }}</p>
+  {% endif %}
+
+  <form method="post" action="/login">
+    <p>
+      <label>Username</label><br>
+      <input type="text" name="username" required>
+    </p>
+
+    <p>
+      <label>Password</label><br>
+      <input type="password" name="password" required>
+    </p>
+
+    <button type="submit">Login</button>
+  </form>
+</body>
+</html>

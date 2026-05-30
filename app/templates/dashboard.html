@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+  <title>DG-E&M Dashboard</title>
+</head>
+<body>
+  <h1>DG-E&M JCS-admin Dashboard</h1>
+
+  <p><strong>User:</strong> {{ user.username }}</p>
+  <p><strong>Role:</strong> {{ user.role }}</p>
+  <p><strong>Build:</strong> {{ version }}</p>
+  <p><strong>Timestamp:</strong> {{ timestamp }}</p>
+
+  <hr>
+
+  <p>Phase 02 Security Foundation is active.</p>
+
+  <p>
+    <a href="/security/whoami">Whoami JSON</a> |
+    <a href="/health">Health</a> |
+    <a href="/logout">Logout</a>
+  </p>
+</body>
+</html>
