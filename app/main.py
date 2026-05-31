@@ -11,6 +11,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 from openai import OpenAI
+from app.services.governed_runner import execute_registered_action
 
 APP_VERSION = "v001"
 ADELAIDE_TZ = ZoneInfo("Australia/Adelaide")
@@ -241,3 +242,28 @@ def api_chat_test(request: Request):
             "error_type": type(exc).__name__,
             "message": "API test failed. See server audit log for details."
         }
+
+
+@app.get("/runner/test")
+def runner_test(request: Request):
+    user = current_user(request)
+
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    result = execute_registered_action(
+        action_id="runner_echo_test_v001",
+        actor=user
+    )
+
+    return {
+        "status": result.get("status"),
+        "run_id": result.get("run_id"),
+        "action_id": result.get("action_id"),
+        "actor": result.get("actor"),
+        "return_code": result.get("return_code"),
+        "stdout": result.get("stdout"),
+        "stderr": result.get("stderr"),
+        "duration_ms": result.get("duration_ms"),
+        "audit_log": "data/logs/runner_audit_log.jsonl"
+    }
