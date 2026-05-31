@@ -48,6 +48,18 @@
 {% endif %}
 
 {% if github_box %}
+<h2 class="section-title">Version Control Status</h2>
+<table class="table">
+  <tr><th>Item</th><th>Current Value</th><th>Status</th></tr>
+  <tr><td>Repository</td><td>chris4415/dgem-jcs-admin-fastapi</td><td><span class="badge green">Active</span></td></tr>
+  <tr><td>Branch</td><td>main</td><td><span class="badge green">Tracked</span></td></tr>
+  <tr><td>Remote</td><td>origin</td><td><span class="badge green">Configured</span></td></tr>
+  <tr><td>Working Tree</td><td>Checked by git status</td><td><span class="badge yellow">Manual v001</span></td></tr>
+  <tr><td>Latest Commit</td><td>Shown by git log until live status action is added</td><td><span class="badge yellow">Manual v001</span></td></tr>
+  <tr><td>Latest Tag</td><td>Shown by git tag until live status action is added</td><td><span class="badge yellow">Manual v001</span></td></tr>
+  <tr><td>Backup Now</td><td>Future action: github_backup_now_v001</td><td><span class="badge yellow">Pending</span></td></tr>
+</table>
+
 <h2 class="section-title">GitHub Backup Library</h2>
 <table class="table">
   <tr><th>Milestone</th><th>Status</th><th>Purpose</th></tr>
