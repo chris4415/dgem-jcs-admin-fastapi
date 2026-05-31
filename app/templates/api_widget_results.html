@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>DG-E&M API-widget Results</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, sans-serif; background: #0f172a; color: #e5e7eb; }
+    .wrap { max-width: 1320px; margin: 0 auto; padding: 24px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
+    a { color: #93c5fd; text-decoration: none; }
+    .card { background: #111827; border: 1px solid #374151; border-radius: 14px; padding: 18px; margin: 14px 0; box-shadow: 0 8px 24px rgba(0,0,0,.22); }
+    .muted { color: #9ca3af; }
+    .ok { color: #86efac; }
+    .err { color: #fca5a5; }
+    .pill { display:inline-block; padding: 3px 8px; border-radius: 999px; background:#1f2937; border:1px solid #374151; font-size: 12px; }
+    .pill-red { background:#450a0a; border-color:#991b1b; color:#fecaca; }
+    .pill-amber { background:#451a03; border-color:#92400e; color:#fed7aa; }
+    .pill-yellow { background:#422006; border-color:#a16207; color:#fde68a; }
+    .pill-green { background:#052e16; border-color:#166534; color:#bbf7d0; }
+    table { width:100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 9px 10px; border-bottom: 1px solid #374151; vertical-align: top; text-align: left; }
+    th { color:#cbd5e1; background:#1f2937; position: sticky; top: 0; }
+    .summary { max-width: 520px; line-height: 1.35; }
+    .small { font-size: 12px; }
+    .toolbar { display:flex; gap:10px; flex-wrap:wrap; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <h1>🤖 API-widget Results Review</h1>
+        <div class="muted">Read-only review of constrained API-widget packets, analysis results, and recommendations.</div>
+      </div>
+      <div class="toolbar">
+        <a href="/dashboard">Home</a>
+        <a href="/ai">AI</a>
+        <a href="/dashboards/audit">Audit</a>
+        <a href="/duckdb">DuckDB</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Status</h2>
+      <p>
+        DuckDB:
+        {% if data.status == "ok" %}
+          <span class="ok">connected</span>
+        {% else %}
+          <span class="err">error</span>
+        {% endif %}
+        <span class="muted small">{{ data.db_path }}</span>
+      </p>
+      {% if data.error %}
+        <p class="err">{{ data.error }}</p>
+      {% endif %}
+
+      <h3>Packet Status</h3>
+      {% if data.packet_status %}
+        {% for row in data.packet_status %}
+          <span class="pill">{{ row.status }}: {{ row.count }}</span>
+        {% endfor %}
+      {% else %}
+        <span class="muted">No packet status rows.</span>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2>Candidate API-widget Packets</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Candidate</th>
+            <th>Type</th>
+            <th>Risk</th>
+            <th>Packet</th>
+            <th>Result</th>
+            <th>API Summary</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in data.packets %}
+          <tr>
+            <td>
+              <strong>{{ row.likely_hostname or row.source_record_id }}</strong><br>
+              <span class="muted small">{{ row.primary_ip }}</span>
+            </td>
+            <td>{{ row.likely_device_type }}</td>
+            <td><span class="pill pill-{{ row.candidate_risk }}">{{ row.candidate_risk }}</span></td>
+            <td>
+              <span class="pill">{{ row.packet_status }}</span><br>
+              <span class="muted small">{{ row.packet_id }}</span>
+            </td>
+            <td>
+              {% if row.result_id %}
+                <span class="pill pill-{{ row.severity_assessment }}">{{ row.severity_assessment }}</span><br>
+                <span class="muted small">{{ row.model }}</span>
+              {% else %}
+                <span class="muted">No result yet</span>
+              {% endif %}
+            </td>
+            <td class="summary">{{ row.summary }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="muted">No API-widget packets found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Recommendations</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Candidate</th>
+            <th>Action ID</th>
+            <th>Risk</th>
+            <th>Approval</th>
+            <th>Status</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in data.recommendations %}
+          <tr>
+            <td>
+              <strong>{{ row.likely_hostname }}</strong><br>
+              <span class="muted small">{{ row.likely_device_type }} {{ row.primary_ip }}</span>
+            </td>
+            <td><code>{{ row.action_id }}</code></td>
+            <td><span class="pill">{{ row.risk_level }}</span></td>
+            <td>{{ row.requires_approval }}</td>
+            <td>{{ row.status }}</td>
+            <td class="summary">{{ row.reason }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="muted">No recommendations found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Boundary</h2>
+      <p class="muted">
+        This page is read-only. It does not call the API, approve assets, execute actions,
+        change network configuration, disable ports, move VLANs, or start monitoring.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

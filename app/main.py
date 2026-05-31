@@ -475,6 +475,127 @@ def workflow_page(request: Request, key: str):
     )
 
 
+
+def _rows_as_dicts(cur):
+    cols = [d[0] for d in cur.description]
+    rows = []
+    for row in cur.fetchall():
+        item = {}
+        for key, value in zip(cols, row):
+            item[key] = "" if value is None else str(value)
+        rows.append(item)
+    return rows
+
+
+def _resolve_duckdb_path():
+    candidates = [
+        os.getenv("DGEM_DUCKDB_PATH", ""),
+        "/data/duckdb/dgem_core.duckdb",
+        "data/duckdb/dgem_core.duckdb",
+    ]
+
+    for candidate in candidates:
+        if candidate and Path(candidate).exists():
+            return Path(candidate)
+
+    return None
+
+
+def load_api_widget_review_data():
+    db_path = _resolve_duckdb_path()
+
+    if not db_path:
+        return {
+            "db_path": "not found",
+            "status": "error",
+            "error": "DuckDB file not found. Expected DGEM_DUCKDB_PATH, /data/duckdb/dgem_core.duckdb, or data/duckdb/dgem_core.duckdb.",
+            "packet_status": [],
+            "packets": [],
+            "recommendations": [],
+        }
+
+    try:
+        import duckdb
+
+        con = duckdb.connect(str(db_path), read_only=True)
+
+        packet_status = _rows_as_dicts(con.execute("""
+            SELECT status, COUNT(*) AS count
+            FROM dgem.api_analysis_packet
+            GROUP BY status
+            ORDER BY status
+        """))
+
+        packets = _rows_as_dicts(con.execute("""
+            SELECT
+                p.packet_id,
+                p.status AS packet_status,
+                p.task_type,
+                p.source_record_id,
+                p.evidence_quality,
+                p.created_at AS packet_created_at,
+                c.likely_hostname,
+                c.likely_device_type,
+                c.risk_level AS candidate_risk,
+                c.primary_ip,
+                r.result_id,
+                r.model,
+                r.severity_assessment,
+                r.summary,
+                r.status AS result_status,
+                r.created_at AS result_created_at
+            FROM dgem.api_analysis_packet p
+            LEFT JOIN dgem.candidate_asset c
+                ON c.candidate_asset_id = p.source_record_id
+            LEFT JOIN dgem.vw_api_analysis_results_latest r
+                ON r.packet_id = p.packet_id
+            WHERE p.widget_id = 'candidate_asset_api_widget_v001'
+            ORDER BY p.created_at DESC
+            LIMIT 50
+        """))
+
+        recommendations = _rows_as_dicts(con.execute("""
+            SELECT
+                rec.created_at,
+                rec.action_id,
+                rec.risk_level,
+                rec.requires_approval,
+                rec.status,
+                rec.reason,
+                c.likely_hostname,
+                c.likely_device_type,
+                c.primary_ip
+            FROM dgem.api_widget_recommendation rec
+            LEFT JOIN dgem.api_analysis_packet p
+                ON p.packet_id = rec.packet_id
+            LEFT JOIN dgem.candidate_asset c
+                ON c.candidate_asset_id = p.source_record_id
+            ORDER BY rec.created_at DESC
+            LIMIT 50
+        """))
+
+        con.close()
+
+        return {
+            "db_path": str(db_path),
+            "status": "ok",
+            "error": "",
+            "packet_status": packet_status,
+            "packets": packets,
+            "recommendations": recommendations,
+        }
+
+    except Exception as exc:
+        return {
+            "db_path": str(db_path),
+            "status": "error",
+            "error": str(exc),
+            "packet_status": [],
+            "packets": [],
+            "recommendations": [],
+        }
+
+
 @app.get("/governance", response_class=HTMLResponse)
 def governance_page(request: Request):
     return workflow_page(request, "governance")
@@ -504,6 +625,28 @@ def setup_page(request: Request):
 def setup_subpage(request: Request, subpage: str):
     return workflow_page(request, f"setup/{subpage}")
 
+
+
+@app.get("/ai/api-widget-results", response_class=HTMLResponse)
+def api_widget_results_page(request: Request):
+    user = current_user(request)
+
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    data = load_api_widget_review_data()
+
+    return templates.TemplateResponse(
+        request,
+        "api_widget_results.html",
+        {
+            "user": user,
+            "version": APP_VERSION,
+            "timestamp": datetime.now(ADELAIDE_TZ).isoformat(),
+            "active_top": "AI",
+            "data": data,
+        }
+    )
 
 @app.get("/ai", response_class=HTMLResponse)
 def ai_page(request: Request):
