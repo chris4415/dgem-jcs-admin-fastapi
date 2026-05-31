@@ -29,5 +29,33 @@
   <main class="container">
     {% block content %}{% endblock %}
   </main>
+
+<!-- DGEM_CHATGPT_FEEDBACK_COPY_V001_START -->
+<section class="dgem-workbench">
+  <div class="workbench-actions">
+    <button id="dgem-copy-chatgpt-btn" type="button">Copy for ChatGPT</button>
+    <button id="dgem-show-packet-btn" type="button">Show Packet</button>
+    <span id="dgem-copy-status" class="workbench-status">Ready to prepare page feedback.</span>
+  </div>
+
+  <textarea id="dgem-feedback-packet-box" class="workbench-packet" style="display:none;" aria-label="ChatGPT feedback packet"></textarea>
+
+  <div class="workbench-grid">
+    <div class="workbench-panel">
+      <h3><a id="dgem-popout-ai-link" class="workbench-title-link" href="#">AI Assistance ↗</a></h3>
+      <p>Use this text packet to give ChatGPT the current page context without a screenshot.</p>
+      <textarea id="dgem-ai-assistance-box" class="workbench-box" placeholder="Click Copy for ChatGPT to generate a feedback packet."></textarea>
+    </div>
+
+    <div class="workbench-panel">
+      <h3><a id="dgem-popout-api-link" class="workbench-title-link" href="#">Governed API Console ↗</a></h3>
+      <p>Controlled system/action context. This is not a free-form script runner.</p>
+      <textarea id="dgem-api-console-box" class="workbench-box" readonly></textarea>
+    </div>
+  </div>
+</section>
+<script src="/static/chatgpt_feedback.js?v=004c3"></script>
+<!-- DGEM_CHATGPT_FEEDBACK_COPY_V001_END -->
+
 </body>
 </html>
