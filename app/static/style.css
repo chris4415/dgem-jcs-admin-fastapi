@@ -326,3 +326,19 @@ a:hover { text-decoration: underline; }
   color: #ffffff;
   text-decoration: underline;
 }
+
+
+/* DGEM_SITE_COPYRIGHT_FOOTER_V001_START */
+
+.site-copyright {
+  width: min(1180px, calc(100% - 48px));
+  margin: 18px auto 26px auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* DGEM_SITE_COPYRIGHT_FOOTER_V001_END */
+
