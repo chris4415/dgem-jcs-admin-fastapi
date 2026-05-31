@@ -1,26 +1,41 @@
-<!doctype html>
-<html>
-<head>
-  <title>DG-E&M Dashboard</title>
-</head>
-<body>
-  <h1>DG-E&M JCS-admin Dashboard</h1>
+{% extends "base.html" %}
 
-  <p><strong>User:</strong> {{ user.username }}</p>
-  <p><strong>Role:</strong> {{ user.role }}</p>
-  <p><strong>Build:</strong> {{ version }}</p>
-  <p><strong>Timestamp:</strong> {{ timestamp }}</p>
+{% block content %}
+<section class="hero">
+  <h1>🏠 DG-E&M JCS-admin</h1>
+  <p>Governed Discovery & Evidence Management Console</p>
+</section>
 
-  <hr>
+<section class="status-strip">
+  <div class="status-pill"><div class="label">Lifecycle Stage</div><div class="value blue">Establish</div></div>
+  <div class="status-pill"><div class="label">Web Server</div><div class="value green">Green</div></div>
+  <div class="status-pill"><div class="label">Security/Login</div><div class="value green">Green</div></div>
+  <div class="status-pill"><div class="label">Chat API</div><div class="value green">Green</div></div>
+  <div class="status-pill"><div class="label">Governed Runner</div><div class="value green">Green</div></div>
+  <div class="status-pill"><div class="label">GitHub Backup</div><div class="value green">Green</div></div>
+  <div class="status-pill"><div class="label">DuckDB</div><div class="value yellow">Pending</div></div>
+  <div class="status-pill"><div class="label">Cloudflare</div><div class="value yellow">Pending</div></div>
+</section>
 
-  <p>Phase 02 Security Foundation is active.</p>
+<section class="grid">
+  <a class="card primary" href="/governance"><div class="emoji">⚖️</div><h2>Governance</h2><p>AI rules, truth verification, lifecycle, decisions, and registries.</p></a>
+  <a class="card" href="/dashboards"><div class="emoji">📊</div><h2>Dashboards</h2><p>Health, inventory, audit, and documentation views.</p></a>
+  <a class="card" href="/setup"><div class="emoji">🛠️</div><h2>Set Up</h2><p>Connections, discovery, scripts, widgets, GitHub, and Cloudflare.</p></a>
+  <a class="card" href="/ai"><div class="emoji">🤖</div><h2>AI Assistance</h2><p>ChatGPT API status, future assistant dialog, context packets, and tool requests.</p></a>
+  <a class="card" href="/duckdb"><div class="emoji">🦆</div><h2>DuckDB</h2><p>Evidence/context database status, query page, tables, views, harvests, and backups.</p></a>
+  <a class="card" href="/punchlist"><div class="emoji">✅</div><h2>Punchlist</h2><p>Build phases, milestones, Git tags, and next actions.</p></a>
+  <a class="card" href="/security"><div class="emoji">🔐</div><h2>Security</h2><p>Users, roles, sessions, secrets, service accounts, and access boundaries.</p></a>
+  <a class="card" href="/setup/github"><div class="emoji">🐙</div><h2>GitHub Backup</h2><p>Source-code backup, tags, source status, and future Backup Now action.</p></a>
+</section>
 
-  <p>
-    <a href="/security/whoami">Whoami JSON</a> |
-    <a href="/api/chat/test">Chat API Test</a> |
-    <a href="/runner/test">Runner Test</a> |
-    <a href="/health">Health</a> |
-    <a href="/logout">Logout</a>
-  </p>
-</body>
-</html>
+<h2 class="section-title">Foundation Tests</h2>
+<table class="table">
+  <tr><th>Area</th><th>Status</th><th>Evidence</th></tr>
+  <tr><td>FastAPI + Caddy</td><td><span class="badge green">Complete</span></td><td><a href="/health">Health endpoint</a></td></tr>
+  <tr><td>Login/session</td><td><span class="badge green">Complete</span></td><td><a href="/security/whoami">Whoami</a></td></tr>
+  <tr><td>ChatGPT API</td><td><span class="badge green">Complete</span></td><td><a href="/api/chat/test">Protected API test</a></td></tr>
+  <tr><td>Governed runner</td><td><span class="badge green">Complete</span></td><td><a href="/runner/test">Registered runner test</a></td></tr>
+  <tr><td>GitHub</td><td><span class="badge green">Complete</span></td><td><a href="/setup/github">GitHub backup page</a></td></tr>
+  <tr><td>DuckDB</td><td><span class="badge yellow">Pending</span></td><td><a href="/duckdb">DuckDB shell</a></td></tr>
+</table>
+{% endblock %}

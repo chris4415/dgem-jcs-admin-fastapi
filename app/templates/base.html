@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <title>{{ title or "DG-E&M JCS-admin" }}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="icon">🏠</span><span>DG-E&M JCS-admin</span></div>
+    <nav class="nav">
+      <a class="{{ 'active' if active_top|default('Home') == 'Home' else '' }}" href="/dashboard">Home</a>
+      <a class="{{ 'active' if active_top|default('') == 'Governance' else '' }}" href="/governance">Governance</a>
+      <a class="{{ 'active' if active_top|default('') == 'Dashboards' else '' }}" href="/dashboards">Dashboards</a>
+      <a class="{{ 'active' if active_top|default('') == 'Set Up' else '' }}" href="/setup">Set Up</a>
+      <a class="{{ 'active' if active_top|default('') == 'AI' else '' }}" href="/ai">AI</a>
+      <a class="{{ 'active' if active_top|default('') == 'DuckDB' else '' }}" href="/duckdb">DuckDB</a>
+      <a class="{{ 'active' if active_top|default('') == 'Punchlist' else '' }}" href="/punchlist">Punchlist</a>
+      <a class="{{ 'active' if active_top|default('') == 'Security' else '' }}" href="/security">Security</a>
+    </nav>
+    <div class="userbar">
+      {% if user %}
+        {{ user.username }} · {{ user.role }} · <a href="/logout">Logout</a>
+      {% else %}
+        <a href="/login">Login</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

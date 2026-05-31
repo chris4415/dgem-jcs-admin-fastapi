@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+  <h1>{{ icon }} {{ title }}</h1>
+  <p>{{ subtitle }}</p>
+</section>
+
+{% if tabs %}
+<nav class="subnav">
+  {% for tab in tabs %}
+    <a href="{{ tab.href }}">{{ tab.label }}</a>
+  {% endfor %}
+</nav>
+{% endif %}
+
+<section class="grid">
+  {% for card in cards %}
+    <a class="card {{ card.class or '' }}" href="{{ card.href }}">
+      <div class="emoji">{{ card.icon }}</div>
+      <h2>{{ card.title }}</h2>
+      <p>{{ card.text }}</p>
+      {% if card.status %}
+        <span class="badge {{ card.status_class }}">{{ card.status }}</span>
+      {% endif %}
+    </a>
+  {% endfor %}
+</section>
+
+{% if query_box %}
+<h2 class="section-title">Controlled Query Dialog</h2>
+<div class="card">
+  <p>This is a placeholder for a future read-only DuckDB query dialog. Query execution will be governed and audited.</p>
+  <textarea class="box" disabled>SELECT * FROM evidence_view LIMIT 20;</textarea>
+  <br>
+  <span class="badge yellow">Read-only implementation pending</span>
+</div>
+{% endif %}
+
+{% if assistant_box %}
+<h2 class="section-title">AI Assistance Dialog</h2>
+<div class="card">
+  <p>This is a placeholder for the future governed ChatGPT assistance dialog.</p>
+  <textarea class="box" disabled>Ask for explanation, analysis, or a proposed governed action...</textarea>
+  <br>
+  <span class="badge yellow">Dialog implementation pending</span>
+</div>
+{% endif %}
+
+{% if github_box %}
+<h2 class="section-title">GitHub Backup Library</h2>
+<table class="table">
+  <tr><th>Milestone</th><th>Status</th><th>Purpose</th></tr>
+  <tr><td>foundation-v001</td><td><span class="badge green">Pushed</span></td><td>FastAPI/Caddy/Docker baseline</td></tr>
+  <tr><td>security-login-v001</td><td><span class="badge green">Pushed</span></td><td>Session login baseline</td></tr>
+  <tr><td>chat-api-test-v001</td><td><span class="badge green">Pushed</span></td><td>Protected OpenAI API test</td></tr>
+  <tr><td>runner-test-v001</td><td><span class="badge green">Pushed</span></td><td>Registered runner action proof</td></tr>
+  <tr><td>web-workflow-shell-v001</td><td><span class="badge yellow">In Progress</span></td><td>Operator-facing webpage structure</td></tr>
+</table>
+
+<h2 class="section-title">Backup Actions</h2>
+<div class="card">
+  <p>Future governed action: <strong>github_backup_now_v001</strong></p>
+  <p>The Backup Now button will check working tree status, require a commit message, commit safe files, push to GitHub, and write an audit record.</p>
+  <span class="badge yellow">Button pending action registry</span>
+</div>
+
+<h2 class="section-title">Excluded From GitHub</h2>
+<div class="card">
+  <p><strong>Not backed up to GitHub:</strong> .env secrets, API keys, Cloudflare tokens, runtime logs, DuckDB runtime files, uploaded evidence, and machine credentials.</p>
+</div>
+{% endif %}
+
+{% if notes %}
+<h2 class="section-title">Workflow Notes</h2>
+<div class="card">
+  {% for note in notes %}
+    <p>{{ note }}</p>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
