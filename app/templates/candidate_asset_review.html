@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>DG-E&M Candidate Asset Review Queue</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, sans-serif; background: #0f172a; color: #e5e7eb; }
+    .wrap { max-width: 1460px; margin: 0 auto; padding: 24px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
+    a { color: #93c5fd; text-decoration: none; }
+    .card { background: #111827; border: 1px solid #374151; border-radius: 14px; padding: 18px; margin: 14px 0; box-shadow: 0 8px 24px rgba(0,0,0,.22); }
+    .muted { color: #9ca3af; }
+    .ok { color: #86efac; }
+    .err { color: #fca5a5; }
+    .pill { display:inline-block; padding: 3px 8px; border-radius: 999px; background:#1f2937; border:1px solid #374151; font-size: 12px; white-space: nowrap; }
+    .pill-red { background:#450a0a; border-color:#991b1b; color:#fecaca; }
+    .pill-amber { background:#451a03; border-color:#92400e; color:#fed7aa; }
+    .pill-yellow { background:#422006; border-color:#a16207; color:#fde68a; }
+    .pill-green { background:#052e16; border-color:#166534; color:#bbf7d0; }
+    table { width:100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 8px 9px; border-bottom: 1px solid #374151; vertical-align: top; text-align: left; }
+    th { color:#cbd5e1; background:#1f2937; position: sticky; top: 0; }
+    .summary { max-width: 420px; line-height: 1.35; }
+    .ports { max-width: 160px; line-height: 1.35; }
+    .small { font-size: 12px; }
+    .toolbar { display:flex; gap:10px; flex-wrap:wrap; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <h1>🧭 Candidate Asset Review Queue</h1>
+        <div class="muted">Read-only review of discovered candidate assets before approval, onboarding, or monitoring.</div>
+      </div>
+      <div class="toolbar">
+        <a href="/dashboard">Home</a>
+        <a href="/dashboards">Dashboards</a>
+        <a href="/ai/api-widget-results">API-widget Results</a>
+        <a href="/duckdb">DuckDB</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Status</h2>
+      <p>
+        DuckDB:
+        {% if data.status == "ok" %}
+          <span class="ok">connected</span>
+        {% else %}
+          <span class="err">error</span>
+        {% endif %}
+        <span class="muted small">{{ data.db_path }}</span>
+      </p>
+      {% if data.error %}
+        <p class="err">{{ data.error }}</p>
+      {% endif %}
+
+      <div class="grid">
+        <div>
+          <h3>Risk Counts</h3>
+          {% for row in data.risk_counts %}
+            <span class="pill pill-{{ row.risk_level }}">{{ row.risk_level }}: {{ row.count }}</span>
+          {% else %}
+            <span class="muted">No risk rows.</span>
+          {% endfor %}
+        </div>
+        <div>
+          <h3>Top Device Types</h3>
+          {% for row in data.type_counts %}
+            <span class="pill">{{ row.likely_device_type }}: {{ row.count }}</span>
+          {% else %}
+            <span class="muted">No type rows.</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Candidate Assets</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Candidate</th>
+            <th>Type</th>
+            <th>Risk</th>
+            <th>Ports / Services</th>
+            <th>Review State</th>
+            <th>API-widget</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in data.candidates %}
+          <tr>
+            <td>
+              <strong>{{ row.likely_hostname }}</strong><br>
+              <span class="muted small">{{ row.primary_ip }}</span><br>
+              <span class="muted small">{{ row.primary_mac }}</span>
+            </td>
+            <td>
+              {{ row.likely_device_type }}<br>
+              <span class="muted small">{{ row.likely_manufacturer }}</span>
+            </td>
+            <td>
+              <span class="pill pill-{{ row.risk_level }}">{{ row.risk_level }}</span><br>
+              <span class="muted small">confidence {{ row.confidence_score }}</span>
+            </td>
+            <td class="ports">
+              <strong>{{ row.port_summary }}</strong><br>
+              <span class="muted small">{{ row.service_summary }}</span>
+            </td>
+            <td>
+              <span class="pill">{{ row.review_status }}</span><br>
+              <span class="muted small">managed: {{ row.managed_status }}</span><br>
+              <span class="muted small">watch: {{ row.security_watch }}</span><br>
+              <span class="muted small">onboard: {{ row.selected_for_onboarding }}</span>
+            </td>
+            <td class="summary">
+              {% if row.result_id %}
+                <span class="pill pill-{{ row.api_severity }}">{{ row.api_severity }}</span>
+                <span class="pill">recs: {{ row.recommendation_count }}</span><br>
+                {{ row.api_summary }}
+              {% else %}
+                <span class="muted">No API result yet</span>
+                {% if row.recommendation_count != "0" %}
+                  <br><span class="pill">recs: {{ row.recommendation_count }}</span>
+                {% endif %}
+              {% endif %}
+            </td>
+            <td class="summary">{{ row.classification_reason }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="muted">No candidate assets found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Boundary</h2>
+      <p class="muted">
+        This page is read-only. Candidate assets are interpreted evidence, not approved truth.
+        Future approval, onboarding, quarantine, and monitoring actions must go through governed workflows.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

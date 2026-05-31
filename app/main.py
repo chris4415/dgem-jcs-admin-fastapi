@@ -596,6 +596,138 @@ def load_api_widget_review_data():
         }
 
 
+
+def load_candidate_asset_review_data():
+    db_path = _resolve_duckdb_path()
+
+    if not db_path:
+        return {
+            "db_path": "not found",
+            "status": "error",
+            "error": "DuckDB file not found. Expected DGEM_DUCKDB_PATH, /data/duckdb/dgem_core.duckdb, or data/duckdb/dgem_core.duckdb.",
+            "risk_counts": [],
+            "type_counts": [],
+            "candidates": [],
+        }
+
+    try:
+        import duckdb
+
+        con = duckdb.connect(str(db_path), read_only=True)
+
+        risk_counts = _rows_as_dicts(con.execute("""
+            SELECT risk_level, COUNT(*) AS count
+            FROM dgem.candidate_asset
+            GROUP BY risk_level
+            ORDER BY
+                CASE risk_level
+                    WHEN 'red' THEN 1
+                    WHEN 'amber' THEN 2
+                    WHEN 'yellow' THEN 3
+                    WHEN 'green' THEN 4
+                    ELSE 5
+                END
+        """))
+
+        type_counts = _rows_as_dicts(con.execute("""
+            SELECT likely_device_type, COUNT(*) AS count
+            FROM dgem.candidate_asset
+            GROUP BY likely_device_type
+            ORDER BY count DESC, likely_device_type
+            LIMIT 20
+        """))
+
+        candidates = _rows_as_dicts(con.execute("""
+            WITH latest_result AS (
+                SELECT
+                    p.source_record_id AS candidate_asset_id,
+                    r.result_id,
+                    r.severity_assessment,
+                    r.summary,
+                    r.created_at,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY p.source_record_id
+                        ORDER BY r.created_at DESC
+                    ) AS rn
+                FROM dgem.api_analysis_packet p
+                LEFT JOIN dgem.api_analysis_result r
+                    ON r.packet_id = p.packet_id
+                WHERE p.widget_id = 'candidate_asset_api_widget_v001'
+                  AND r.result_id IS NOT NULL
+            ),
+            rec_count AS (
+                SELECT
+                    p.source_record_id AS candidate_asset_id,
+                    COUNT(*) AS recommendation_count
+                FROM dgem.api_widget_recommendation rec
+                LEFT JOIN dgem.api_analysis_packet p
+                    ON p.packet_id = rec.packet_id
+                GROUP BY p.source_record_id
+            )
+            SELECT
+                c.candidate_asset_id,
+                c.likely_hostname,
+                c.likely_device_type,
+                c.likely_manufacturer,
+                c.primary_ip,
+                c.primary_mac,
+                c.port_summary,
+                c.service_summary,
+                c.risk_level,
+                c.confidence_score,
+                c.managed_status,
+                c.review_status,
+                c.security_watch,
+                c.selected_for_onboarding,
+                c.baseline_status,
+                c.classification_reason,
+                c.first_seen,
+                c.last_seen,
+                lr.result_id,
+                lr.severity_assessment AS api_severity,
+                lr.summary AS api_summary,
+                COALESCE(rc.recommendation_count, 0) AS recommendation_count
+            FROM dgem.candidate_asset c
+            LEFT JOIN latest_result lr
+                ON lr.candidate_asset_id = c.candidate_asset_id
+               AND lr.rn = 1
+            LEFT JOIN rec_count rc
+                ON rc.candidate_asset_id = c.candidate_asset_id
+            ORDER BY
+                CASE c.risk_level
+                    WHEN 'red' THEN 1
+                    WHEN 'amber' THEN 2
+                    WHEN 'yellow' THEN 3
+                    WHEN 'green' THEN 4
+                    ELSE 5
+                END,
+                c.likely_device_type,
+                c.primary_ip
+            LIMIT 100
+        """))
+
+        con.close()
+
+        return {
+            "db_path": str(db_path),
+            "status": "ok",
+            "error": "",
+            "risk_counts": risk_counts,
+            "type_counts": type_counts,
+            "candidates": candidates,
+        }
+
+    except Exception as exc:
+        return {
+            "db_path": str(db_path),
+            "status": "error",
+            "error": str(exc),
+            "risk_counts": [],
+            "type_counts": [],
+            "candidates": [],
+        }
+
+
 @app.get("/governance", response_class=HTMLResponse)
 def governance_page(request: Request):
     return workflow_page(request, "governance")
@@ -605,6 +737,28 @@ def governance_page(request: Request):
 def governance_subpage(request: Request, subpage: str):
     return workflow_page(request, f"governance/{subpage}")
 
+
+
+@app.get("/dashboards/candidate-assets", response_class=HTMLResponse)
+def candidate_asset_review_page(request: Request):
+    user = current_user(request)
+
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    data = load_candidate_asset_review_data()
+
+    return templates.TemplateResponse(
+        request,
+        "candidate_asset_review.html",
+        {
+            "user": user,
+            "version": APP_VERSION,
+            "timestamp": datetime.now(ADELAIDE_TZ).isoformat(),
+            "active_top": "Dashboards",
+            "data": data,
+        }
+    )
 
 @app.get("/dashboards", response_class=HTMLResponse)
 def dashboards_page(request: Request):
